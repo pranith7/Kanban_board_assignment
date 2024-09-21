@@ -1,19 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TaskItem from './TaskItem';
 import { useTask } from '../../contexts/TaskContext';
-import { useEffect } from 'react';
 
 const TaskList: React.FC = () => {
   const [sortBy, setSortBy] = useState('dueDate');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterPriority, setFilterPriority] = useState('');
-  const { tasks } = useTask();
+  const { tasks, fetchTasks } = useTask();
 
   useEffect(() => {
-    // console.log('Tasks received in TaskList:', tasks);
-  }, [tasks]);
-  
-  const sortedAndFilteredTasks = (() => {
+    fetchTasks();
+  }, [fetchTasks]);
+
+  const sortedAndFilteredTasks = React.useMemo(() => {
     try {
       const taskArray = Array.isArray(tasks) ? tasks : tasks?.data;
       if (!taskArray || !Array.isArray(taskArray)) {
@@ -36,8 +35,7 @@ const TaskList: React.FC = () => {
       console.error('Error processing tasks:', error);
       return [];
     }
-  })();
-
+  }, [tasks, filterStatus, filterPriority, sortBy]);
 
   return (
     <div>

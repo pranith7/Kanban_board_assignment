@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { getTasks, createTask, updateTask, deleteTask } from '../services/api';
 
 interface Task {
@@ -20,32 +20,59 @@ interface TaskContextType {
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
+
 export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [lastFetchTime, setLastFetchTime] = useState(0);
 
-  const fetchTasks = async () => {
-    const fetchedTasks = await getTasks();
-    // console.log('Fetched tasks:', fetchedTasks);
-    setTasks(fetchedTasks);
-  };
+  const fetchTasks = useCallback(async () => {
+    const now = Date.now();
+    if (now - lastFetchTime > 60000) { // Only fetch if forced or more than 1 minute has passed
+      try {
+        const fetchedTasks = await getTasks();
+        setTasks(fetchedTasks);
+        setLastFetchTime(now);
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+      }
+    }
+  }, [lastFetchTime]);
 
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    fetchTasks(); // Initial fetch
+    
+    const intervalId = setInterval(() => {
+      fetchTasks(); // Regular fetch every minute
+    }, 60000);
+
+    return () => clearInterval(intervalId);
+  }, [fetchTasks]);
 
   const addTask = async (task: Omit<Task, '_id'>) => {
-    const newTask = await createTask(task);
-    setTasks([...tasks, newTask]);
+    try {
+      const newTask = await createTask(task);
+      setTasks(prevTasks => [...prevTasks, newTask]);
+    } catch (error) {
+      console.error('Error adding task:', error);
+    }
   };
 
   const updateTaskItem = async (id: string, updatedTask: Partial<Task>) => {
-    const updated = await updateTask(id, updatedTask);
-    setTasks(tasks.map(task => task._id === id ? { ...task, ...updated } : task));
+    try {
+      const updated = await updateTask(id, updatedTask);
+      setTasks(prevTasks => prevTasks.map(task => task._id === id ? { ...task, ...updated } : task));
+    } catch (error) {
+      console.error('Error updating task:', error);
+    }
   };
 
   const removeTask = async (id: string) => {
-    await deleteTask(id);
-    setTasks(tasks.filter(task => task._id !== id));
+    try {
+      await deleteTask(id);
+      setTasks(prevTasks => prevTasks.filter(task => task._id !== id));
+    } catch (error) {
+      console.error('Error removing task:', error);
+    }
   };
 
   return (

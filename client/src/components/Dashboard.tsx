@@ -1,15 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TaskList from './Taskmanagement/TaskList';
 import KanbanBoard from './Taskmanagement/KanbanBoard';
 import TaskForm from './Taskmanagement/TaskForm';
 import { Button } from './ui/button';
 import { useAuth } from '../contexts/AuthContext';
+import { useTask } from '../contexts/TaskContext';
+
 
 const Dashboard: React.FC = () => {
   const [view, setView] = useState<'list' | 'board'>('list');
   const { user, logout } = useAuth();
   const [showTaskForm, setShowTaskForm] = useState(false);
+  const { fetchTasks } = useTask();
   // console.log(`user: ${user} email: ${user?.email}`)
+
+
+  useEffect(() => {
+    if (user) {
+      fetchTasks();
+    }
+  }, [user, fetchTasks]);
 
   return (
     <>
