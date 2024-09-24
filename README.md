@@ -22,7 +22,7 @@ This is an assignment for **YourseAI** where I have built a full-stack task mana
 
 ## 📌 Current Status
 
-As of now, the core functionalities are implemented, but there is an issue with state management:
+As of now, the core functionalities are implemented:
 
 - **Deploying**: 
   - I am working on fixing this issue and will deploy the final solution to Vercel once resolved. This README will be updated with the Vercel deployment link afterward.
