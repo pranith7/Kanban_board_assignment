@@ -24,8 +24,7 @@ This is an assignment for **YourseAI** where I have built a full-stack task mana
 
 As of now, the core functionalities are implemented, but there is an issue with state management:
 
-- **State Management Issue**: 
-  - After updating, creating, deleting, or dragging tasks on the Kanban board, the browser needs to be reloaded for the changes to reflect. 
+- **Deploying**: 
   - I am working on fixing this issue and will deploy the final solution to Vercel once resolved. This README will be updated with the Vercel deployment link afterward.
 
 ## 🎥 Video Demo

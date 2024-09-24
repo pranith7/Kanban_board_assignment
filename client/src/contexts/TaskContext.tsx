@@ -10,6 +10,12 @@ interface Task {
   dueDate?: Date;
 }
 
+interface ApiResponse<T> {
+  code: number;
+  data: T;
+  message: string;
+}
+
 interface TaskContextType {
   tasks: Task[];
   addTask: (task: Omit<Task, '_id'>) => Promise<void>;
@@ -20,7 +26,6 @@ interface TaskContextType {
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
-
 export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [lastFetchTime, setLastFetchTime] = useState(0);
@@ -29,8 +34,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const now = Date.now();
     if (now - lastFetchTime > 60000) { // Only fetch if forced or more than 1 minute has passed
       try {
-        const fetchedTasks = await getTasks();
-        setTasks(fetchedTasks);
+        const response: ApiResponse<Task[]> = await getTasks();
+        setTasks(response.data);
         setLastFetchTime(now);
       } catch (error) {
         console.error('Error fetching tasks:', error);
@@ -50,8 +55,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addTask = async (task: Omit<Task, '_id'>) => {
     try {
-      const newTask = await createTask(task);
-      setTasks(prevTasks => [...prevTasks, newTask]);
+      const response: ApiResponse<Task> = await createTask(task);
+      setTasks(prevTasks => [...prevTasks, response.data]);
     } catch (error) {
       console.error('Error adding task:', error);
     }
@@ -59,8 +64,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateTaskItem = async (id: string, updatedTask: Partial<Task>) => {
     try {
-      const updated = await updateTask(id, updatedTask);
-      setTasks(prevTasks => prevTasks.map(task => task._id === id ? { ...task, ...updated } : task));
+      const response: ApiResponse<Task> = await updateTask(id, updatedTask);
+      setTasks(prevTasks => prevTasks.map(task => task._id === id ? { ...task, ...response.data } : task));
     } catch (error) {
       console.error('Error updating task:', error);
     }
@@ -87,7 +92,5 @@ export const useTask = () => {
   if (context === undefined) {
     throw new Error('useTask must be used within a TaskProvider');
   }
-  // console.log('Task Context:', context);
-  
   return context;
 };
